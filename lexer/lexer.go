@@ -18,20 +18,6 @@ func New(input string) *Lexer {
 }
 
 /*
-Advances the lexer by one character and stores the current character in the ch field.
-If the end of the file is reached then ch is given a value of 0.
-*/
-func (l *Lexer) readChar() {
-	if (l.readPosition >= len(l.input)) {
-		l.ch = 0	// 0 is ascii for "NUL" -> either nothing is read or "end of file"
-	} else {
-		l.ch = l.input[l.readPosition]
-	}
-	l.position = l.readPosition
-	l.readPosition += 1
-}
-
-/*
 Looks at the current character under examination (l.ch) and returns a token depending on which character it is.
 Advances the input pointers before returning the token so l.ch is already updated for the next call.
 */
@@ -42,13 +28,25 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch (l.ch) {
 		case '=':
-			tok = newToken(token.ASSIGN, l.ch)
+			if (l.peekChar() == '=') { // checks if the token will be '==' or '='
+				ch := l.ch
+				l.readChar()
+				tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch)}
+			} else {
+				tok = newToken(token.ASSIGN, l.ch)
+			}
+		case '!':
+			if (l.peekChar() == '=') { // checks if the token will be '!=' or '!'
+				ch := l.ch
+				l.readChar()
+				tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(l.ch)}
+			} else {
+				tok = newToken(token.BANG, l.ch)
+			}
 		case '+':
 			tok = newToken(token.PLUS, l.ch)
 		case '-':
 			tok = newToken(token.MINUS, l.ch)
-		case '!':
-			tok = newToken(token.BANG, l.ch)
 		case '/':
 			tok = newToken(token.SLASH, l.ch)
 		case '*':
@@ -88,6 +86,33 @@ func (l *Lexer) NextToken() token.Token {
 
 	l.readChar()
 	return tok
+}
+
+/*
+Advances the lexer by one character and stores the current character in the ch field.
+If the end of the file is reached then ch is given a value of 0.
+*/
+func (l *Lexer) readChar() {
+	if (l.readPosition >= len(l.input)) {
+		l.ch = 0	// 0 is ascii for "NUL" -> either nothing is read or "end of file"
+	} else {
+		l.ch = l.input[l.readPosition]
+	}
+	l.position = l.readPosition
+	l.readPosition += 1
+}
+
+/*
+similar to `readChar()` except l.position and l.readPosition are not incremented. It
+only allows you to check one character ahead without actually moving ahead. This
+effectively allows us to know what a `readChar()` call would return.
+*/
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
 }
 
 /*
