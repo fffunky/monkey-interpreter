@@ -8,19 +8,26 @@ type Token struct {
 }
 
 const (
-	ILLEGAL = "ILLEGAL" // undefined tokens are illegal
-	EOF = "EOF"			// end of file
+	ILLEGAL = "ILLEGAL" 	// undefined tokens are illegal
+	EOF		= "EOF"			// end of file
 
 	// Identifiers + literals
-	IDENT = "IDENT"
-	INT = "INT"
+	IDENT 	= "IDENT"
+	INT 	= "INT"
 
 	// Operators
-	ASSIGN = "="
-	PLUS = "+"
+	ASSIGN 	 = "="
+	PLUS 	 = "+"
+	MINUS 	 = "-"
+	BANG 	 = "!"
+	ASTERISK = "*"
+	SLASH	 = "/"
+
+	LT = "<"
+	GT = ">"
 
 	// Delimiters
-	COMMA = ","
+	COMMA	  = ","
 	SEMICOLON = ";"
 
 	LPAREN = "("
@@ -30,7 +37,7 @@ const (
 
 	// Keywords
 	FUNCTION = "FUNCTION"
-	LET = "LET"
+	LET 	 = "LET"
 )
 
 var keywords = map[string]TokenType{
