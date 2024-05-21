@@ -1,8 +1,8 @@
 package ast
 
 import (
-	"monkey/token"
 	"bytes"
+	"monkey/token"
 )
 
 type Node interface {
@@ -75,7 +75,7 @@ func (ls *LetStatement) TokenLiteral() string {
 
 func (ls *LetStatement) String() string {
 	var out bytes.Buffer
-	
+
 	out.WriteString(ls.TokenLiteral() + " ")
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
@@ -90,7 +90,7 @@ func (ls *LetStatement) String() string {
 // == Return Statement ==
 
 type ReturnStatement struct {
-	Token 		token.Token
+	Token       token.Token
 	ReturnValue Expression
 }
 
@@ -115,7 +115,7 @@ func (rs *ReturnStatement) String() string {
 // == Expression Statement ==
 
 type ExpressionStatement struct {
-	Token 	   token.Token
+	Token      token.Token
 	Expression Expression
 }
 
@@ -135,9 +135,9 @@ func (es *ExpressionStatement) String() string {
 // == Prefix Expression ==
 
 type PrefixExpression struct {
-	Token 	 token.Token
+	Token    token.Token
 	Operator string
-	Right 	 Expression
+	Right    Expression
 }
 
 func (pe *PrefixExpression) expressionNode() {}
@@ -148,7 +148,7 @@ func (pe *PrefixExpression) TokenLiteral() string {
 
 func (pe *PrefixExpression) String() string {
 	var out bytes.Buffer
-	
+
 	out.WriteString("(")
 	out.WriteString(pe.Operator)
 	out.WriteString(pe.Right.String())
@@ -177,10 +177,10 @@ func (il *IntegerLiteral) String() string {
 // == Infix Expression ==
 
 type InfixExpression struct {
-	Token 	 token.Token
-	Left 	 Expression
+	Token    token.Token
+	Left     Expression
 	Operator string
-	Right 	 Expression
+	Right    Expression
 }
 
 func (oe *InfixExpression) expressionNode() {}
@@ -191,7 +191,7 @@ func (oe *InfixExpression) TokenLiteral() string {
 
 func (oe *InfixExpression) String() string {
 	var out bytes.Buffer
-	
+
 	out.WriteString("(")
 	out.WriteString(oe.Left.String())
 	out.WriteString(" " + oe.Operator + " ")
@@ -216,4 +216,58 @@ func (b *Boolean) TokenLiteral() string {
 
 func (b *Boolean) String() string {
 	return b.Token.Literal
+}
+
+// == Block Statement ==
+
+type BlockStatement struct {
+	Token      token.Token
+	Statements []Statement
+}
+
+func (bs *BlockStatement) statementNode() {}
+
+func (bs *BlockStatement) TokenLiteral() string {
+	return bs.Token.Literal
+}
+
+func (bs *BlockStatement) String() string {
+	var out bytes.Buffer
+
+	for _, s := range bs.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
+}
+
+// == If Expressions ==
+
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (ie *IfExpression) expressionNode() {}
+
+func (ie *IfExpression) TokenLiteral() string {
+	return ie.Token.Literal
+}
+
+func (ie *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if")
+	out.WriteString(ie.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(ie.Consequence.String())
+
+	if ie.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(ie.Alternative.String())
+	}
+
+	return out.String()
 }
