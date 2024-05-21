@@ -188,8 +188,8 @@ func TestIntegerLiteralExpression(t *testing.T) {
 }
 
 func TestBooleanExpression(t *testing.T) {
-	tests := []struct{
-		input 			string
+	tests := []struct {
+		input           string
 		expectedBoolean bool
 	}{
 		{"true;", true},
@@ -221,14 +221,13 @@ func TestBooleanExpression(t *testing.T) {
 		}
 	}
 
-
 }
 
 func TestParsingPrefixExpression(t *testing.T) {
 	prefixTests := []struct {
-		input	 string
+		input    string
 		operator string
-		value 	 interface{}
+		value    interface{}
 	}{
 		{"!5;", "!", 5},
 		{"-15;", "-", 15},
@@ -290,11 +289,11 @@ func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 
 func TestParsingInfixExpressions(t *testing.T) {
 	infixTests := []struct {
-		input string
-		leftValue interface{}
-		operator string
+		input      string
+		leftValue  interface{}
+		operator   string
 		rightValue interface{}
-	} {
+	}{
 		{"5 + 5;", 5, "+", 5},
 		{"5 - 5;", 5, "-", 5},
 		{"5 * 5;", 5, "*", 5},
@@ -331,11 +330,10 @@ func TestParsingInfixExpressions(t *testing.T) {
 		if exp.Operator != tt.operator {
 			t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
 		}
-		
+
 		if !testLiteralExpression(t, exp.Left, tt.leftValue) {
 			return
 		}
-
 
 		if !testLiteralExpression(t, exp.Right, tt.rightValue) {
 			return
@@ -345,9 +343,9 @@ func TestParsingInfixExpressions(t *testing.T) {
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
 	tests := []struct {
-		input	 string
+		input    string
 		expected string
-	} {
+	}{
 		{
 			"-a * b",
 			"((-a) * b)",
@@ -452,7 +450,7 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 }
 
-func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{},) bool {
+func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) bool {
 	switch v := expected.(type) {
 	case int:
 		return testIntegerLiteral(t, exp, int64(v))
@@ -467,9 +465,9 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{
 	return false
 }
 
-func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, 
+func testInfixExpression(t *testing.T, exp ast.Expression, left interface{},
 	operator string, right interface{}) bool {
-	
+
 	opExp, ok := exp.(*ast.InfixExpression)
 	if !ok {
 		t.Errorf("exp is not ast.OperatorExpression. got=%T(%s)", exp, exp)
@@ -608,4 +606,74 @@ func TestIfElseExpression(t *testing.T) {
 	if !testIdentifier(t, alternative.Expression, "y") {
 		return
 	}
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "fn() {};", expectedParams: []string{}},
+		{input: "fn(x) {};", expectedParams: []string{"x"}},
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		function := stmt.Expression.(*ast.FunctionLiteral)
+
+		if len(function.Parameters) != len(tt.expectedParams) {
+			t.Errorf("length parameters wrong. want %d, got=%d\n", len(tt.expectedParams), len(function.Parameters))
+		}
+
+		for i, ident := range tt.expectedParams {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
+	}
+}
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `fn(x, y) { x + y; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	function, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(function.Parameters) != 2 {
+		t.Fatalf("function literal parameters wrong. want 2, got=%d\n", len(function.Parameters))
+	}
+
+	testLiteralExpression(t, function.Parameters[0], "x")
+	testLiteralExpression(t, function.Parameters[1], "y")
+
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("function.Body.Statements does not contain 1 statements. got=%d\n", len(function.Body.Statements))
+	}
+
+	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("functino body stmt is not ast.ExpressionStatement. got=%T", function.Body.Statements[0])
+	}
+
+	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
 }
