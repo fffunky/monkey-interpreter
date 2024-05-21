@@ -11,30 +11,31 @@ import (
 const (
 	_ int = iota
 	LOWEST
-	EQUALS		// ==
+	EQUALS      // ==
 	LESSGREATER // > or <
-	SUM			// +
-	PRODUCT		// *
-	PREFIX 		// -X or !X
-	CALL 		// myFunction(X)
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -X or !X
+	CALL        // myFunction(X)
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQ:	  	EQUALS,
-	token.NOT_EQ: 	EQUALS,
-	token.LT:	  	LESSGREATER,
-	token.GT:	  	LESSGREATER,
-	token.PLUS:   	SUM,
-	token.MINUS:  	SUM,
-	token.SLASH:  	PRODUCT,
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.LPAREN:   CALL,
 }
 
 type Parser struct {
-	lex 	  *lexer.Lexer
+	lex       *lexer.Lexer
 	curToken  token.Token
 	peekToken token.Token
-	errors 	  []string
+	errors    []string
 
 	prefixParseFns map[token.TokenType]prefixParseFn
 	infixParseFns  map[token.TokenType]infixParseFn
@@ -42,7 +43,7 @@ type Parser struct {
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		lex:	l,
+		lex:    l,
 		errors: []string{},
 	}
 
@@ -70,6 +71,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseCallExpression)
 
 	return p
 }
@@ -135,7 +137,7 @@ func (p *Parser) curPrecedence() int {
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
-	
+
 	for !p.curTokenIs(token.EOF) {
 		stmt := p.parseStatement()
 		if stmt != nil {
@@ -143,7 +145,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 		}
 		p.nextToken()
 	}
-	
+
 	return program
 }
 
@@ -194,7 +196,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 // == Expression Parsing ==
 
-/* 
+/*
 Each token can be associated with both a prefix parsing function and an infix parsing function
 depending on the position in which it is found.
 */
@@ -255,7 +257,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	// defer untrace(trace("parsePrefixExpression"))
 	expression := &ast.PrefixExpression{
-		Token: 	  p.curToken,
+		Token:    p.curToken,
 		Operator: p.curToken.Literal,
 	}
 
@@ -269,9 +271,9 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	// defer untrace(trace("parseInfixExpression"))
 	expression := &ast.InfixExpression{
-		Token: 	  p.curToken,
+		Token:    p.curToken,
 		Operator: p.curToken.Literal,
-		Left: 	  left,
+		Left:     left,
 	}
 
 	precedence := p.curPrecedence()
@@ -413,4 +415,34 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	lit.Body = p.parseBlockStatement()
 
 	return lit
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
 }
