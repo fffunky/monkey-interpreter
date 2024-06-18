@@ -1,12 +1,13 @@
 package object
 
-import(
+import (
 	"fmt"
 )
 
 type ObjectType string
 
 const (
+	NULL_OBJ    = "NULL"
 	INTEGER_OBJ = "INTEGER"
 	BOOLEAN_OBJ = "BOOLEAN"
 )
@@ -14,6 +15,17 @@ const (
 type Object interface {
 	Type() ObjectType
 	Inspect() string
+}
+
+// == NULL ==
+type Null struct{}
+
+func (n *Null) Type() ObjectType {
+	return NULL_OBJ
+}
+
+func (n *Null) Inspect() string {
+	return "null"
 }
 
 // == INTEGER ==
