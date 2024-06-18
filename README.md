@@ -1,5 +1,5 @@
 # Writing an Interpreter
-Reference: "Writing An Interpreter In Go" by Thorsten Ball
+Book: "Writing An Interpreter In Go" by Thorsten Ball
 
 # The Monkey Language & Interpreter
 The interpreter will parse and evaluate a made up language called Monkey
