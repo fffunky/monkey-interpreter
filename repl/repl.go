@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"monkey/lexer"
-	"monkey/parser"
 	"monkey/evaluator"
+	"monkey/lexer"
+	"monkey/object"
+	"monkey/parser"
 )
 
 const PROMPT = ">> "
@@ -21,11 +22,12 @@ const MONKEY_ASCII = `
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Printf(PROMPT)
 		scanned := scanner.Scan()
-		if (!scanned) {
+		if !scanned {
 			return
 		}
 
@@ -39,7 +41,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
@@ -53,6 +55,7 @@ func printParserErrors(out io.Writer, errors []string) {
 	io.WriteString(out, "Whoops! We ran into some monkey business here!\n")
 	io.WriteString(out, " parser errors:\n")
 	for _, msg := range errors {
-		io.WriteString(out, "\t" + msg + "\n")
+		io.WriteString(out, "\t"+msg+"\n")
 	}
 }
+
