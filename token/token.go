@@ -3,35 +3,38 @@ package token
 type TokenType string
 
 type Token struct {
-	Type TokenType
+	Type    TokenType
 	Literal string
 }
 
 const (
-	ILLEGAL = "ILLEGAL" 	// undefined tokens are illegal
-	EOF		= "EOF"			// end of file
+	ILLEGAL = "ILLEGAL" // undefined tokens are illegal
+	EOF     = "EOF"     // end of file
 
 	// Identifiers + literals
-	IDENT 	= "IDENT"
-	INT 	= "INT"
+	IDENT  = "IDENT"
+	INT    = "INT"
+	STRING = "STRING"
 
 	// Operators
-	ASSIGN 	 = "="
-	PLUS 	 = "+"
-	MINUS 	 = "-"
-	BANG 	 = "!"
+	ASSIGN   = "="
+	PLUS     = "+"
+	MINUS    = "-"
+	BANG     = "!"
 	ASTERISK = "*"
-	SLASH	 = "/"
+	SLASH    = "/"
 
 	LT = "<"
 	GT = ">"
 
-	EQ = "=="
+	EQ     = "=="
 	NOT_EQ = "!="
 
 	// Delimiters
-	COMMA	  = ","
+	COMMA     = ","
 	SEMICOLON = ";"
+
+	QUOTE = "\""
 
 	LPAREN = "("
 	RPAREN = ")"
@@ -40,22 +43,22 @@ const (
 
 	// Keywords
 	FUNCTION = "FUNCTION"
-	LET 	 = "LET"
-	TRUE 	 = "TRUE"
-	FALSE 	 = "FALSE"
-	IF 		 = "IF"
-	ELSE 	 = "ELSE"
-	RETURN 	 = "RETURN"
+	LET      = "LET"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
 )
 
 var keywords = map[string]TokenType{
-	"fn":		FUNCTION,
-	"let":		LET,
-	"true":		TRUE,
-	"false":	FALSE,
-	"if": 		IF,
-	"else":		ELSE,
-	"return":	RETURN,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
 }
 
 /*
@@ -69,3 +72,4 @@ func LookupIdent(ident string) TokenType {
 	}
 	return IDENT
 }
+

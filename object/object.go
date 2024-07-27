@@ -16,6 +16,7 @@ const (
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
+	STRING_OBJ       = "STRING"
 )
 
 type Object interface {
@@ -24,6 +25,7 @@ type Object interface {
 }
 
 // == NULL ==
+
 type Null struct{}
 
 func (n *Null) Type() ObjectType {
@@ -35,6 +37,7 @@ func (n *Null) Inspect() string {
 }
 
 // == INTEGER ==
+
 type Integer struct {
 	Value int64
 }
@@ -62,6 +65,7 @@ func (b *Boolean) Inspect() string {
 }
 
 // == RETURN ==
+
 type ReturnValue struct {
 	Value Object
 }
@@ -75,6 +79,7 @@ func (rv *ReturnValue) Inspect() string {
 }
 
 // == ERROR ==
+
 type Error struct {
 	Message string
 }
@@ -115,4 +120,18 @@ func (f *Function) Inspect() string {
 	out.WriteString("\n}")
 
 	return out.String()
+}
+
+// == STRING ==
+
+type String struct {
+	Value string
+}
+
+func (s *String) Type() ObjectType {
+	return STRING_OBJ
+}
+
+func (s *String) Inspect() string {
+	return s.Value
 }
